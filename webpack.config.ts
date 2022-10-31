@@ -1,7 +1,7 @@
 import * as path from "path";
 import { Configuration, Compiler, PathData, AssetInfo, Compilation } from "webpack";
 import HtmlWebpackPlugin, { HtmlTagObject } from "html-webpack-plugin";
-
+import createStyledComponentsTransformer from "typescript-plugin-styled-components";
 
 class InlineAssetsPlugin {
     modifyFactory(publicPath: string | ((arg0: PathData, arg1: AssetInfo) => string), compilation: Compilation) {
@@ -56,7 +56,7 @@ class InlineAssetsPlugin {
     }
 }
 
-const hwp = new HtmlWebpackPlugin()
+const styledComponentsTransformer = createStyledComponentsTransformer();
 
 const config: Configuration = {
     mode: "development",
@@ -69,13 +69,25 @@ const config: Configuration = {
     module: {
         rules: [
             {
+                test: /\.css$/i,
+                use: ["style-loader", "css-loader"]
+            },
+            {
                 test: /\.(ts|tsx)$/,
-                loader: "ts-loader"
-            }
+                loader: "ts-loader",
+                options: {
+                    getCustomTransformers: () => ({ before: [styledComponentsTransformer]})
+                }
+            },
         ]
     },
     resolve: {
-        extensions: [".webpack.js", ".web.js", ".ts", ".tsx", ".js"]
+        extensions: [".webpack.js", ".web.js", ".ts", ".tsx", ".js", ".jsx"],
+        alias: {
+            "react": "preact/compat",
+            "react-dom/test-utils": "preact/test-utils",
+            "react-dom": "preact/compat"
+        }
     },
     plugins: [
         new HtmlWebpackPlugin(),
