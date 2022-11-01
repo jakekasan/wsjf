@@ -3,6 +3,7 @@ import { useEffect, useState } from "preact/hooks"
 
 import styled, { css } from "styled-components";
 
+
 type WSJFScore = 1 | 2 | 3 | 5 | 8 | 13 | 21;
 
 interface SliderItemProps {
@@ -10,7 +11,7 @@ interface SliderItemProps {
     isActive: boolean
 }
 
-interface SliderRowContainerProps {
+interface SliderRowProps {
     title: string,
     options: WSJFScore[],
     isActive: boolean,
@@ -23,8 +24,7 @@ const SliderItem = styled.div<SliderItemProps>`
     `}
 `;
 
-
-const SliderRow = styled.div<{isActive: boolean}>`
+const SliderContainerElement = styled.div<{isActive: boolean}>`
     ${(props) => (
         css`
             background: ${props.isActive ? "yellow" : "white"}
@@ -32,22 +32,22 @@ const SliderRow = styled.div<{isActive: boolean}>`
     )}
 `;
 
-const SliderRowContainer: FunctionalComponent<SliderRowContainerProps> = ({ title, options, isActive, onNewValue }) => {
+const SliderRow: FunctionalComponent<SliderRowProps> = ({ title, options, isActive, onNewValue }) => {
     const currentXPosition = useSlider({numItems: options.length, nextKey: "ArrowRight", prevKey: "ArrowLeft", isActive })
     useEffect(() => {
         onNewValue(options[currentXPosition]);
     }, [currentXPosition])
     return (
-        <div className={`slider-container ${isActive ? "active" : ""}`}>
+        <SliderContainerElement isActive={ isActive }>
             <h3>{ title }</h3>
             <div className={`slider-row ${isActive ? "active" : ""}`}>
-               { options.map((item, i) => {
+            { options.map((item, i) => {
                 return (
                 <SliderItem isActive={ currentXPosition === i }>{ item.toString() }</SliderItem>
                 )
-               })}
+            })}
             </div>
-        </div>
+        </SliderContainerElement>
     )
 }
 
@@ -93,35 +93,56 @@ const useSlider = ({ numItems, startingPosition = 0, nextKey, prevKey, isActive 
     return position
 }
 
-const WSJF: FunctionalComponent = () => {
+const useWSJF = () => {
     const [operationalBenefit, setOperationalBenefit] = useState(1);
     const [timeCriticality, setTimeCriticality] = useState(1);
     const [riskReduction, setRiskReduction] = useState(1);
     const [timeToFix, setTimeToFix] = useState(1);
-
+    
     const [costOfDelay, setCostOfDelay] = useState(operationalBenefit + timeCriticality + riskReduction);
     const [finalScore, setFinalScore] = useState(costOfDelay / timeToFix);
+
+    useEffect(() => {
+        setCostOfDelay(operationalBenefit + timeCriticality + riskReduction);
+    }, [operationalBenefit, timeCriticality, riskReduction])
+    
+    useEffect(() => {
+        setFinalScore(costOfDelay / timeToFix)
+    }, [costOfDelay, timeToFix])
+
+    return {
+        finalScore,
+        costOfDelay,
+        setOperationalBenefit,
+        setTimeCriticality,
+        setRiskReduction,
+        setTimeToFix
+    }
+}
+
+const WSJF: FunctionalComponent = () => {
 
     const currentYPosition = useSlider({ numItems:4, nextKey: "ArrowDown", prevKey: "ArrowUp" })
     const WSJFScores = [1, 2, 3, 5, 8, 13, 21] as WSJFScore[];
     
-    useEffect(() => {
-        setCostOfDelay(operationalBenefit + timeCriticality + riskReduction);
-    }, [operationalBenefit, timeCriticality, riskReduction])
-
-    useEffect(() => {
-        setFinalScore(costOfDelay / timeToFix)
-    }, [costOfDelay, timeToFix])
+    const {
+        setOperationalBenefit,
+        setTimeCriticality,
+        setRiskReduction,
+        setTimeToFix,
+        finalScore,
+        costOfDelay
+    } = useWSJF();
 
     return (
         <div>
             <h3>Hello, there...</h3>
             <div>
-                <SliderRowContainer title="Operational Benefit" options={ WSJFScores } isActive={ currentYPosition === 0} onNewValue={ setOperationalBenefit }/>
-                <SliderRowContainer title="Time Criticality" options={ WSJFScores } isActive={ currentYPosition === 1} onNewValue={ setTimeCriticality }/>
-                <SliderRowContainer title="Risk Reduction" options={ WSJFScores } isActive={ currentYPosition === 2} onNewValue={ setRiskReduction }/>
+                <SliderRow title="Operational Benefit" options={ WSJFScores } isActive={ currentYPosition === 0} onNewValue={ setOperationalBenefit }/>
+                <SliderRow title="Time Criticality" options={ WSJFScores } isActive={ currentYPosition === 1} onNewValue={ setTimeCriticality }/>
+                <SliderRow title="Risk Reduction" options={ WSJFScores } isActive={ currentYPosition === 2} onNewValue={ setRiskReduction }/>
                 <h3>Cost of Delay: {costOfDelay}</h3>
-                <SliderRowContainer title="Time to Fix" options={ WSJFScores } isActive={ currentYPosition === 3} onNewValue={ setTimeToFix }/>
+                <SliderRow title="Time to Fix" options={ WSJFScores } isActive={ currentYPosition === 3} onNewValue={ setTimeToFix }/>
                 <h3>Final Score: {finalScore}</h3>
             </div>
         </div>
