@@ -1,5 +1,5 @@
 import { h, FunctionalComponent } from "preact"
-import { useEffect, useState } from "preact/hooks"
+import { useEffect, useMemo, useState } from "preact/hooks"
 
 import styled, { css } from "styled-components";
 
@@ -7,7 +7,6 @@ import styled, { css } from "styled-components";
 type WSJFScore = 1 | 2 | 3 | 5 | 8 | 13 | 21;
 
 interface SliderItemProps {
-    // value: string,
     isActive: boolean
 }
 
@@ -20,14 +19,29 @@ interface SliderRowProps {
 
 const SliderItem = styled.div<SliderItemProps>`
     ${props => css`
-        background: ${props.isActive ? "red" : "blue"}
+        background: ${props.isActive ? "red" : "blue"};
+        opacity: ${props.isActive ? "1" : "0.25"};
+        padding: 10px;
+        border: 2px solid;
+        border-radius: 5px;
+        font-weight: ${props.isActive ? "400" : "100"};
+        text-align: center;
     `}
+`;
+
+const SliderContainerTitleElement = styled.h3``;
+
+const SliderRowElement = styled.div`
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
 `;
 
 const SliderContainerElement = styled.div<{isActive: boolean}>`
     ${(props) => (
         css`
-            background: ${props.isActive ? "yellow" : "white"}
+            opacity: ${props.isActive ? "0.9" : "0.6"};
+            padding: 15px;
         `
     )}
 `;
@@ -39,14 +53,14 @@ const SliderRow: FunctionalComponent<SliderRowProps> = ({ title, options, isActi
     }, [currentXPosition])
     return (
         <SliderContainerElement isActive={ isActive }>
-            <h3>{ title }</h3>
-            <div className={`slider-row ${isActive ? "active" : ""}`}>
+            <SliderContainerTitleElement>{ title }</SliderContainerTitleElement>
+            <SliderRowElement>
             { options.map((item, i) => {
                 return (
                 <SliderItem isActive={ currentXPosition === i }>{ item.toString() }</SliderItem>
                 )
             })}
-            </div>
+            </SliderRowElement>
         </SliderContainerElement>
     )
 }
@@ -111,13 +125,27 @@ const useWSJF = () => {
     }, [costOfDelay, timeToFix])
 
     return {
-        finalScore,
+        operationalBenefit,
+        timeCriticality,
+        riskReduction,
+        timeToFix,
         costOfDelay,
+        finalScore,
         setOperationalBenefit,
         setTimeCriticality,
         setRiskReduction,
         setTimeToFix
     }
+}
+
+const CopyToClipBoard: FunctionalComponent<{content: string}> = ({content}) => {
+    const onClick = () => {
+        navigator.clipboard.writeText(content)
+        .then(() => console.log("Wrote some stuff!!"))
+        .catch(e => console.log("Eh?", { e }))
+    }
+
+    return <button onClick={ onClick }>Click Me!</button>
 }
 
 const WSJF: FunctionalComponent = () => {
@@ -130,9 +158,24 @@ const WSJF: FunctionalComponent = () => {
         setTimeCriticality,
         setRiskReduction,
         setTimeToFix,
+        operationalBenefit,
+        timeCriticality,
+        riskReduction,
+        timeToFix,
         finalScore,
-        costOfDelay
+        costOfDelay,
     } = useWSJF();
+    
+    const value = useMemo(() => {
+        return (
+            `Value: ${finalScore}\n` +
+            `- Operational Benefit (OB): ${operationalBenefit}\n` +
+            `- Time Criticality (TC): ${timeCriticality}\n` +
+            `- Risk Reduction (RR): ${riskReduction}\n` +
+            `- Cost of Delay (CoD): ${costOfDelay}\n` +
+            `- Time to Fix (TtF): ${timeToFix}\n`
+        )
+    }, [finalScore, costOfDelay, operationalBenefit, timeCriticality, riskReduction, timeToFix])
 
     return (
         <div>
@@ -145,6 +188,7 @@ const WSJF: FunctionalComponent = () => {
                 <SliderRow title="Time to Fix" options={ WSJFScores } isActive={ currentYPosition === 3} onNewValue={ setTimeToFix }/>
                 <h3>Final Score: {finalScore}</h3>
             </div>
+            <CopyToClipBoard content={ value }/>
         </div>
     )
 }
