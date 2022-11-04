@@ -8,29 +8,3 @@ body > div {
     margin: 50px auto auto auto;
     width: 400px;
 }
-
-.slider-row {
-    display: grid;
-    width: 100%;
-    grid-template-columns: repeat(7, 50px);
-}
-
-.slider-row > * {
-    padding: 10px;
-    width: auto;
-    height: 50px;
-    opacity: 0.5;
-}
-
-.slider-row > *:hover {
-    opacity: 1;
-}
-
-.slider-row > .active {
-    background-color: thistle;
-    opacity: 0.8;
-}
-
-.slider-row.active {
-    background-color: blanchedalmond;
-}
