@@ -1,5 +1,4 @@
-import { h, FunctionalComponent } from "preact"
-import { useEffect, useMemo, useState } from "preact/hooks"
+import { useEffect, useState } from "preact/hooks"
 
 type WSJFScore = 1 | 2 | 3 | 5 | 8 | 13 | 21;
 
@@ -43,7 +42,7 @@ const formatWsjf = (
     finalScore: number
     ): string => {
     return (
-        `Value: ${finalScore}\n` +
+        `__Value: ${finalScore}\n__` +
         `- Operational Benefit (OB): ${operationalBenefit}\n` +
         `- Time Criticality (TC): ${timeCriticality}\n` +
         `- Risk Reduction (RR): ${riskReduction}\n` +
