@@ -25,7 +25,7 @@ class InlineAssetsPlugin {
             if (asset == null) {
                 return tag;
             }
-            const innerHtml = asset.source()
+
             return {
                 tagName: "script",
                 innerHTML: asset.source() as string,
